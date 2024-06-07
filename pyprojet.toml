@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Pyrostates"
+version = "1.0.0"
+description = "A state handling extension for Pyrogram"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Sajjad", email = "sajjadalipour2006@gmail.com"}
+]
+keywords = ["python", "bot", "telegram", "pyrogram"]
+classifiers = [
+    "License :: OSI Approved :: MIT License"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/SajjadAlipour2006/Pyrostates"
+"Tracker" = "https://github.com/SajjadAlipour2006/Pyrostates/issues"
