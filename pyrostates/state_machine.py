@@ -6,8 +6,6 @@ from . import at_state
 
 
 class StateMachine:
-    global_state_machine = None
-
     def create_table(self):
         sql = """CREATE TABLE IF NOT EXISTS user_states(user_id INTEGER PRIMARY KEY, user_state TEXT)"""
         cursor = self.connection.cursor()
@@ -78,6 +76,3 @@ class StateMachine:
         cursor = self.connection.cursor()
         cursor.execute(sql)
         return dict(cursor.fetchall())
-
-
-StateMachine.global_state_machine = StateMachine()
