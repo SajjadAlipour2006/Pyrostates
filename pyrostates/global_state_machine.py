@@ -1,7 +1,6 @@
 from pyrogram.filters import Filter
 
-from . import StateMachine
-
+from .state_machine import StateMachine
 
 global_state_machine = StateMachine()
 
@@ -26,4 +25,4 @@ class AtState(Filter):
         self.state_machine = state_machine
 
     async def __call__(self, client, update) -> bool:
-        return get_state(update, self.state_machine) == self.state
+        return self.state_machine.at(self.state)

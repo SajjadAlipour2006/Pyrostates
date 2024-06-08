@@ -1,4 +1,4 @@
-from . import State
+from .state import State
 
 
 class StateGroup:

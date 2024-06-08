@@ -1,11 +1,25 @@
 from sqlite3 import connect
 from typing import Union
 
-from . import State
-from . import at_state
+from pyrogram.filters import create
+from pyrogram.types import Message, CallbackQuery, Chat, User
+
+from .state import State
 
 
 class StateMachine:
+    @staticmethod
+    def get_id(user_id):
+        if isinstance(user_id, Message):
+            return user_id.from_user.id or user_id.sender_chat.id
+        if isinstance(user_id, CallbackQuery):
+            return user_id.from_user.id
+        if isinstance(user_id, (Chat, User)):
+            return user_id.id
+        if isinstance(user_id, str):
+            return int(user_id)
+        return user_id
+
     def create_table(self):
         sql = """CREATE TABLE IF NOT EXISTS user_states(user_id INTEGER PRIMARY KEY, user_state TEXT)"""
         cursor = self.connection.cursor()
@@ -19,14 +33,16 @@ class StateMachine:
 
     def insert_user_state(self, user_id: Union[int, str], state: Union[State, str]):
         sql = """INSERT INTO user_states VALUES (?, ?)"""
+        user_id = self.get_id(user_id)
         cursor = self.connection.cursor()
-        cursor.execute(sql, (int(user_id), state))
+        cursor.execute(sql, (user_id, state))
         self.connection.commit()
 
     def update_user_state(self, user_id: Union[int, str], state: Union[State, str]):
         sql = """UPDATE user_states SET user_state = ? WHERE user_id = ?"""
+        user_id = self.get_id(user_id)
         cursor = self.connection.cursor()
-        cursor.execute(sql, (state, int(user_id)))
+        cursor.execute(sql, (state, user_id))
         self.connection.commit()
 
     def __setitem__(self, user_id: Union[int, str], state: Union[State, str]):
@@ -39,8 +55,9 @@ class StateMachine:
 
     def select_user_state(self, user_id: Union[int, str]):
         sql = """SELECT user_state FROM user_states WHERE user_id = ?"""
+        user_id = self.get_id(user_id)
         cursor = self.connection.cursor()
-        cursor.execute(sql, (int(user_id),))
+        cursor.execute(sql, (user_id,))
         return cursor.fetchone()
 
     def __getitem__(self, user_id: Union[int, str]):
@@ -54,8 +71,9 @@ class StateMachine:
 
     def delete_user_state(self, user_id: Union[int, str]):
         sql = """DELETE from user_states where user_id = ?"""
+        user_id = self.get_id(user_id)
         cursor = self.connection.cursor()
-        cursor.execute(sql, (int(user_id),))
+        cursor.execute(sql, (user_id,))
         self.connection.commit()
 
     def __delitem__(self, user_id: Union[int, str]):
@@ -64,7 +82,10 @@ class StateMachine:
         self.delete_user_state(user_id)
 
     def at(self, state: Union[State, str]):
-        return at_state(state, self)
+        @create
+        def at_state(_, __, update):
+            return self[update] == state
+        return at_state
 
     def change_database(self, database: str = ":memory:"):
         now_connection = connect(database, check_same_thread=False)
