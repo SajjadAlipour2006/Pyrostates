@@ -3,12 +3,13 @@ from pyrostates import StateMachine, StateGroup, State, set_state, del_state
 
 app = Client("my_account")
 
-state_machine = StateMachine("user_states.db")
-
 
 class States(StateGroup):
     NAME = State()
     AGE = State()
+
+
+state_machine = StateMachine("user_states.db", States)
 
 
 @app.on_message(state_machine.at(None) & filters.private & filters.text)
