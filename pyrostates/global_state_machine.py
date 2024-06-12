@@ -24,5 +24,6 @@ class AtState(Filter):
         self.state = state
         self.state_machine = state_machine
 
-    async def __call__(self, client, update) -> bool:
-        return self.state_machine.at(self.state)
+    async def __call__(self, _, update) -> bool:
+        at_state = self.state_machine.at(self.state)
+        return at_state(_, update)
