@@ -1,4 +1,5 @@
 from .state import State
+from .global_state_machine import global_state_machine
 
 
 class StateGroup:
@@ -11,3 +12,4 @@ class StateGroup:
         for name, state in cls.get_state_dict().items():
             state.name = name
             state.group = cls
+        global_state_machine.state_group = cls
