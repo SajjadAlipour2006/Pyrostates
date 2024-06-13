@@ -15,14 +15,14 @@ state_machine = StateMachine("user_states.db", States)
 @app.on_message(state_machine.at(None) & filters.private & filters.text)
 async def home_state(_, message):
     await message.reply("Hello, I'm the conversation bot\nWhat is your name?")
-    state_machine[message] = "NAME"
+    state_machine[message] = States.NAME
 
 
 @app.on_message(state_machine.at(States.NAME) & filters.private & filters.text)
 async def name_state(_, message):
     name = message.text
     await message.reply(f"Nice to meet you, {name}!\nHow old are you?")
-    state_machine[message] = "AGE"
+    state_machine[message] = States.AGE
 
 
 @app.on_message(state_machine.at(States.AGE) & filters.private & filters.text)

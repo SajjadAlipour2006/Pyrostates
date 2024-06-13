@@ -12,14 +12,14 @@ class States(StateGroup):
 @app.on_message(at_state(None) & filters.private & filters.text)
 async def home_state(_, message):
     await message.reply("Hello, I'm the conversation bot\nWhat is your name?")
-    set_state(message, "NAME")
+    set_state(message, States.NAME)
 
 
 @app.on_message(at_state(States.NAME) & filters.private & filters.text)
 async def name_state(_, message):
     name = message.text
     await message.reply(f"Nice to meet you, {name}!\nHow old are you?")
-    set_state(message, "AGE")
+    set_state(message, States.AGE)
 
 
 @app.on_message(at_state(States.AGE) & filters.private & filters.text)
