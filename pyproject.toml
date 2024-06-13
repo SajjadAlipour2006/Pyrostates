@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Pyrostates"
-version = "1.0.0"
+version = "0.1.0"
 description = "A state handling extension for Pyrogram"
 readme = "README.md"
 license = {file = "LICENSE"}
