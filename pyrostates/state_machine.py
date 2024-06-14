@@ -84,7 +84,12 @@ class StateMachine:
     def at(self, state: Union[State, str]):
         @create
         def at_state(_, __, update):
-            return self[update] == state
+            if hasattr(update, "state"):
+                current_state = getattr(update, "state")
+            else:
+                current_state = self[update]
+                setattr(update, "state", current_state)
+            return current_state == state
         return at_state
 
     def change_database(self, database: str = ":memory:"):
