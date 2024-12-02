@@ -15,8 +15,6 @@ class StateMachine:
                 return user_id.from_user.id
             if user_id.sender_chat:
                 return user_id.sender_chat.id
-            else:
-                return None
         if isinstance(user_id, CallbackQuery):
             return user_id.from_user.id
         if isinstance(user_id, (Chat, User)):
