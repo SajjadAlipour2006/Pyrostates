@@ -3,7 +3,6 @@ from .global_state_machine import global_state_machine
 
 
 class StateGroup:
-
     @classmethod
     def get_state_dict(cls):
         return {name: state for name, state in cls.__dict__.items() if isinstance(state, State)}

@@ -18,12 +18,11 @@ def del_state(user, state_machine=global_state_machine):
 
 
 class AtState(Filter):
-
     def __init__(self, state, state_machine=global_state_machine):
         super().__init__()
         self.state = state
         self.state_machine = state_machine
 
-    async def __call__(self, _, update) -> bool:
+    async def __call__(self, client, update) -> bool:
         at_state = self.state_machine.at(self.state)
-        return at_state(_, update)
+        return at_state(client, update)

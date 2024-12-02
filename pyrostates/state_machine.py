@@ -11,7 +11,12 @@ class StateMachine:
     @staticmethod
     def get_id(user_id):
         if isinstance(user_id, Message):
-            return user_id.from_user.id or user_id.sender_chat.id
+            if user_id.from_user:
+                return user_id.from_user.id
+            if user_id.sender_chat:
+                return user_id.sender_chat.id
+            else:
+                return None
         if isinstance(user_id, CallbackQuery):
             return user_id.from_user.id
         if isinstance(user_id, (Chat, User)):
@@ -84,6 +89,9 @@ class StateMachine:
     def at(self, state: Union[State, str]):
         @create
         def at_state(_, __, update):
+            if isinstance(update, Message):
+                if not update.from_user and not update.sender_chat:
+                    return False
             if hasattr(update, "state"):
                 current_state = getattr(update, "state")
             else:
