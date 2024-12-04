@@ -1,3 +1,5 @@
+__version__ = "1.0.0"
+
 from .state_group import StateGroup
 from .state import State
 from .state_machine import StateMachine
