@@ -17,6 +17,10 @@ def del_state(user, state_machine=global_state_machine):
     del state_machine[user]
 
 
+def del_state_if_exists(user, state_machine=global_state_machine):
+    state_machine.delete_user_state(user)
+
+
 class AtState(Filter):
     def __init__(self, state, state_machine=global_state_machine):
         super().__init__()
