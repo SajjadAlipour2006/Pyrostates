@@ -1,27 +1,30 @@
 from sqlite3 import connect
-from typing import Union
+from typing import Union, Type
 
 from pyrogram.filters import create
 from pyrogram.types import Message, CallbackQuery, Chat, User
 
+import pyrostates
 from .state import State
+
+UserTypes = Union[Message, CallbackQuery, Chat, User, str, int]
 
 
 class StateMachine:
     @staticmethod
-    def get_id(user_id):
-        if isinstance(user_id, Message):
-            if user_id.from_user:
-                return user_id.from_user.id
-            if user_id.sender_chat:
-                return user_id.sender_chat.id
-        if isinstance(user_id, CallbackQuery):
-            return user_id.from_user.id
-        if isinstance(user_id, (Chat, User)):
-            return user_id.id
-        if isinstance(user_id, str):
-            return int(user_id)
-        return user_id
+    def get_id(user: UserTypes) -> int:
+        if isinstance(user, Message):
+            if user.from_user:
+                return user.from_user.id
+            if user.sender_chat:
+                return user.sender_chat.id
+        if isinstance(user, CallbackQuery):
+            return user.from_user.id
+        if isinstance(user, (Chat, User)):
+            return user.id
+        if isinstance(user, str):
+            return int(user)
+        return user
 
     def create_table(self):
         sql = """CREATE TABLE IF NOT EXISTS user_states(user_id INTEGER PRIMARY KEY, user_state TEXT)"""
@@ -29,42 +32,42 @@ class StateMachine:
         cursor.execute(sql)
         self.connection.commit()
 
-    def __init__(self, database: str = ":memory:", state_group=None):
+    def __init__(self, database: str = ":memory:", state_group: Type["pyrostates.StateGroup"] = None):
         self.connection = connect(database, check_same_thread=False)
         self.state_group = state_group
         self.create_table()
 
-    def insert_user_state(self, user_id: Union[int, str], state: Union[State, str]):
+    def insert_user_state(self, user: UserTypes, state: Union[State, str]):
         sql = """INSERT INTO user_states VALUES (?, ?)"""
-        user_id = self.get_id(user_id)
+        user_id = self.get_id(user)
         cursor = self.connection.cursor()
         cursor.execute(sql, (user_id, state))
         self.connection.commit()
 
-    def update_user_state(self, user_id: Union[int, str], state: Union[State, str]):
+    def update_user_state(self, user: UserTypes, state: Union[State, str]):
         sql = """UPDATE user_states SET user_state = ? WHERE user_id = ?"""
-        user_id = self.get_id(user_id)
+        user_id = self.get_id(user)
         cursor = self.connection.cursor()
         cursor.execute(sql, (state, user_id))
         self.connection.commit()
 
-    def __setitem__(self, user_id: Union[int, str], state: Union[State, str]):
+    def __setitem__(self, user: UserTypes, state: Union[State, str]):
         if isinstance(state, State):
             state = str(state)
-        if self[user_id] is None:
-            self.insert_user_state(user_id, state)
+        if self[user] is None:
+            self.insert_user_state(user, state)
         else:
-            self.update_user_state(user_id, state)
+            self.update_user_state(user, state)
 
-    def select_user_state(self, user_id: Union[int, str]):
+    def select_user_state(self, user: UserTypes) -> Union[str, None]:
         sql = """SELECT user_state FROM user_states WHERE user_id = ?"""
-        user_id = self.get_id(user_id)
+        user_id = self.get_id(user)
         cursor = self.connection.cursor()
         cursor.execute(sql, (user_id,))
         return cursor.fetchone()
 
-    def __getitem__(self, user_id: Union[int, str]):
-        result = self.select_user_state(user_id)
+    def __getitem__(self, user: UserTypes) -> Union[State, str, None]:
+        result = self.select_user_state(user)
         if result is None:
             return result
         elif self.state_group is not None and result[0] in self.state_group.get_state_dict():
@@ -72,21 +75,21 @@ class StateMachine:
         else:
             return result[0]
 
-    def delete_user_state(self, user_id: Union[int, str]):
+    def delete_user_state(self, user: UserTypes):
         sql = """DELETE from user_states where user_id = ?"""
-        user_id = self.get_id(user_id)
+        user_id = self.get_id(user)
         cursor = self.connection.cursor()
         cursor.execute(sql, (user_id,))
         self.connection.commit()
 
-    def __delitem__(self, user_id: Union[int, str]):
-        if self[user_id] is None:
+    def __delitem__(self, user: UserTypes):
+        if self[user] is None:
             raise KeyError("User does not exist")
-        self.delete_user_state(user_id)
+        self.delete_user_state(user)
 
-    def at(self, state: Union[State, str]):
+    def at(self, state: Union[State, str, None]):
         @create
-        def at_state(_, __, update):
+        def at_state(_, __, update) -> bool:
             if isinstance(update, Message):
                 if not update.from_user and not update.sender_chat:
                     return False
@@ -103,7 +106,7 @@ class StateMachine:
         self.connection.backup(now_connection)
         self.connection = now_connection
 
-    def get_all(self):
+    def get_all(self) -> dict:
         sql = """SELECT * FROM user_states"""
         cursor = self.connection.cursor()
         cursor.execute(sql)
